@@ -432,7 +432,8 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<!-- 新しい行 -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 
 <script type="module">
 import { joinRoom } from 'https://esm.sh/trystero@0.21.6/torrent';
@@ -2432,19 +2433,34 @@ function openModeModal(g, i){
 /* QRコード描画 */
 function renderQR(container, text){
   container.innerHTML = '';
-  const canvas = document.createElement('canvas');
-  container.appendChild(canvas);
-  window.QRCode.toCanvas(canvas, text, {
-    width: 220,
-    margin: 1,
-    color: { dark: '#141414', light: '#ffffff' }
-  }, function(err){
-    if (err){
-      container.innerHTML =
-        '<div style="padding:20px;text-align:center;font-size:12px;color:#666;">'
-        + 'QRコードの生成に失敗しました<br>URLをコピーして共有してください</div>';
+  try {
+    // typeNumber=0（自動）、誤り訂正レベル='M'
+    const qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+
+    // SVGで出力（scalableでレスポンシブ対応）
+    const svgTag = qr.createSvgTag({
+      cellSize: 5,
+      margin: 2,
+      scalable: true
+    });
+    container.innerHTML = svgTag;
+
+    // SVGをコンテナに合わせて表示
+    const svgEl = container.querySelector('svg');
+    if (svgEl){
+      svgEl.style.width = '100%';
+      svgEl.style.height = 'auto';
+      svgEl.style.maxWidth = '240px';
+      svgEl.style.display = 'block';
+      svgEl.style.margin = '0 auto';
     }
-  });
+  } catch (e){
+    container.innerHTML =
+      '<div style="padding:20px;text-align:center;font-size:12px;color:#666;">'
+      + 'QRコードの生成に失敗しました<br>URLをコピーして共有してください</div>';
+  }
 }
 
 async function startHosting(g, i){
